@@ -1,8 +1,8 @@
 
 
 all:
-	GOOS=darwin GOARCH=amd64 go build -o main main.go
-	# GOOS=linux  GOARCH=amd64 go build -o goody.Linux main.go
+	GOOS=darwin GOARCH=amd64 go build -o omoide main.go
+	# GOOS=linux  GOARCH=amd64 go build -o omoide main.go
 
 clean:
-	rm -f main
+	rm -f omoide
