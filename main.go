@@ -52,12 +52,18 @@ func main() {
 		tweets, _, e := client.Timelines.UserTimeline(userTimelineParams)
     if e != nil {
       fmt.Println(e)
+      fmt.Println("Error")
       return
     }
 
     fmt.Println("Current MaxID: ", maxID)
 		for index := range tweets {
 			tweet := tweets[index]
+
+      if maxID > tweet.ID {
+        maxID = tweet.ID
+      }
+
 			if tweet.FavoriteCount >= *t {
 				continue
 			}
@@ -74,10 +80,6 @@ func main() {
       fmt.Println(messagePrefix, tweet.ID, tweet.FavoriteCount)
       if *s {
         fmt.Println(tweet.Text)
-      }
-
-      if maxID > tweet.ID {
-        maxID = tweet.ID
       }
 		}
 	}
