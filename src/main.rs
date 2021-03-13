@@ -13,6 +13,12 @@ struct Opt {
 
     #[structopt(short, long)]
     screen_name: String,
+
+    #[structopt(short, long, default_value = "10")]
+    page_size: i32,
+
+    #[structopt(short, long, default_value = "5")]
+    num_iters: u32
 }
 
 
@@ -56,9 +62,11 @@ async fn main() {
     let user_id = egg_mode::user::show(opt.screen_name, &token).await.unwrap().response.id;
 
     let mut max_id: Option<u64> = None;
-    let timeline = egg_mode::tweet::user_timeline(user_id, false, false, &token);
+    let timeline = egg_mode::tweet::user_timeline(user_id, false, false, &token)
+        .with_page_size(opt.page_size);
 
-    for _ in 0..10 {
+    for _ in 0..opt.num_iters {
+        println!("start");
         let ret = timeline.call(None, max_id).await.unwrap();
         for status in ret.response.iter() {
             if status.favorite_count < opt.favorite_count {
@@ -71,7 +79,7 @@ async fn main() {
                 }
             }
 
-            max_id = Some(status.id);
+            max_id = Some(status.id - 1);
         }
     }
 }
