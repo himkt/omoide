@@ -8,17 +8,20 @@ struct Opt {
     #[structopt(short, long)]
     delete: bool,
 
-    #[structopt(short = "f", long)]
+    #[structopt(short = "f", long, default_value = "-1")]
     favorite_count: i32,
 
     #[structopt(short, long)]
     screen_name: String,
 
     #[structopt(short, long, default_value = "10")]
-    page_size: i32,
+    per_page: i32,
 
     #[structopt(short, long, default_value = "5")]
-    num_iters: u32
+    num_iters: u32,
+
+    #[structopt(short, long)]
+    verbose: bool
 }
 
 
@@ -50,26 +53,32 @@ async fn main() {
     let access_key = load_env("API_KEY");
     let access_secret = load_env("API_KEY_SECRET");
 
-    println!(
-        "consumer_key: {}\nconsumer_secret: {}\napi_key: {}\napi_secret: {}",
-        &consumer_key,
-        &consumer_secret,
-        &access_key,
-        &access_secret,
-    );
+    if opt.verbose {
+        println!(
+            "consumer_key: {}\nconsumer_secret: {}\napi_key: {}\napi_secret: {}",
+            &consumer_key,
+            &consumer_secret,
+            &access_key,
+            &access_secret,
+        );
+    }
 
     let token = auth(consumer_key, consumer_secret, access_key, access_secret);
     let user_id = egg_mode::user::show(opt.screen_name, &token).await.unwrap().response.id;
 
     let mut max_id: Option<u64> = None;
     let timeline = egg_mode::tweet::user_timeline(user_id, false, false, &token)
-        .with_page_size(opt.page_size);
+        .with_page_size(opt.per_page);
+
+    if opt.delete && opt.favorite_count == -1 {
+        println!("If `--delete` is specified, you have to set `--favorite-count` as well.");
+        return;
+    }
 
     for _ in 0..opt.num_iters {
-        println!("start");
         let ret = timeline.call(None, max_id).await.unwrap();
         for status in ret.response.iter() {
-            if status.favorite_count < opt.favorite_count {
+            if opt.favorite_count > 0 && status.favorite_count < opt.favorite_count {
                 if !opt.delete {
                     println!("[dru-run] {:?}", status.text);
                 }
@@ -77,6 +86,10 @@ async fn main() {
                     delete(status.id, &token).await.unwrap();
                     println!("[deleted] {:?}", status.text);
                 }
+            }
+
+            if opt.favorite_count == -1 {
+                println!("{:?}", status.text);
             }
 
             max_id = Some(status.id - 1);
