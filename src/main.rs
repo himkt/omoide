@@ -21,7 +21,13 @@ struct Opt {
     num_iters: u32,
 
     #[structopt(short, long)]
-    verbose: bool
+    verbose: bool,
+
+    #[structopt(short, long)]
+    include_rt: bool,
+
+    #[structopt(short, long)]
+    include_reply: bool,
 }
 
 
@@ -40,7 +46,7 @@ fn auth(
 fn load_env(key: &str) -> String {
     match std::env::var(key) {
         Ok(val) => val,
-        Err(e) => panic!(e),
+        Err(e) => panic!("{}", e),
     }
 }
 
@@ -67,7 +73,12 @@ async fn main() {
     let user_id = egg_mode::user::show(opt.screen_name, &token).await.unwrap().response.id;
 
     let mut max_id: Option<u64> = None;
-    let timeline = egg_mode::tweet::user_timeline(user_id, false, false, &token)
+    let timeline = egg_mode::tweet::user_timeline(
+        user_id,
+        opt.include_reply,
+        opt.include_rt,
+        &token,
+    )
         .with_page_size(opt.per_page);
 
     if opt.delete && opt.favorite_count == -1 {
