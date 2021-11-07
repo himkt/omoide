@@ -5,28 +5,28 @@ use structopt::StructOpt;
 #[derive(StructOpt, Debug)]
 #[structopt(name = "omoide")]
 struct Opt {
-    #[structopt(short, long)]
+    #[structopt(long)]
     delete: bool,
 
-    #[structopt(short = "f", long, default_value = "-1")]
+    #[structopt(long, default_value = "-1")]
     favorite_count: i32,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     screen_name: String,
 
-    #[structopt(short, long, default_value = "10")]
+    #[structopt(long, default_value = "10")]
     per_page: i32,
 
-    #[structopt(short, long, default_value = "5")]
+    #[structopt(long, default_value = "5")]
     num_iters: u32,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     verbose: bool,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     include_rt: bool,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     include_reply: bool,
 }
 
@@ -89,7 +89,10 @@ async fn main() {
     for _ in 0..opt.num_iters {
         let ret = timeline.call(None, max_id).await.unwrap();
         for status in ret.response.iter() {
-            if opt.favorite_count > 0 && status.favorite_count < opt.favorite_count {
+            if opt.favorite_count < 0 {
+                println!("{}", status.text);
+            }
+            else if status.favorite_count < opt.favorite_count {
                 if !opt.delete {
                     println!("[dru-run] {:?}", status.text);
                 }
@@ -97,10 +100,6 @@ async fn main() {
                     delete(status.id, &token).await.unwrap();
                     println!("[deleted] {:?}", status.text);
                 }
-            }
-
-            if opt.favorite_count == -1 {
-                println!("{:?}", status.text);
             }
 
             max_id = Some(status.id - 1);
