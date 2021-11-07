@@ -69,18 +69,6 @@ impl Credential for EnvironmentVariableCredential {
 }
 
 
-fn auth(
-    consumer_key: String,
-    consumer_secret: String,
-    access_key: String,
-    access_secret: String,
-) -> Token {
-    let consumer_token = KeyPair::new(consumer_key, consumer_secret);
-    let access_token = KeyPair::new(access_key, access_secret);
-    Token::Access { consumer: consumer_token, access: access_token }
-}
-
-
 #[tokio::main]
 async fn main() {
     let opt: Opt = Opt::from_args();
@@ -90,12 +78,9 @@ async fn main() {
         std::dbg!(&credential);
     }
 
-    let token = auth(
-        credential.consumer_key,
-        credential.consumer_secret,
-        credential.access_key,
-        credential.access_secret,
-    );
+    let consumer_token = KeyPair::new(credential.consumer_key, credential.consumer_secret);
+    let access_token = KeyPair::new(credential.access_key, credential.access_secret);
+    let token = Token::Access { consumer: consumer_token, access: access_token };
 
     let user_id = egg_mode::user::show(opt.screen_name, &token).await.unwrap().response.id;
 
