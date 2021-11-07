@@ -31,6 +31,44 @@ struct Opt {
 }
 
 
+trait Credential {
+    fn new() -> Self;
+
+    fn load(key: &str) -> String {
+        match std::env::var(key) {
+            Ok(val) => val,
+            Err(e) => panic!("{}", e),
+        }
+    }
+}
+
+
+#[derive(Debug)]
+struct EnvironmentVariableCredential {
+    consumer_key: String,
+    consumer_secret: String,
+    access_key: String,
+    access_secret: String,
+}
+
+
+impl Credential for EnvironmentVariableCredential {
+    fn new() -> EnvironmentVariableCredential {
+        let consumer_key = <EnvironmentVariableCredential as Credential>::load("CONSUMER_KEY");
+        let consumer_secret = <EnvironmentVariableCredential as Credential>::load("CONSUMER_KEY_SECRET");
+        let access_key = <EnvironmentVariableCredential as Credential>::load("API_KEY");
+        let access_secret = <EnvironmentVariableCredential as Credential>::load("API_KEY_SECRET");
+
+        EnvironmentVariableCredential {
+            consumer_key,
+            consumer_secret,
+            access_key,
+            access_secret,
+        }
+    }
+}
+
+
 fn auth(
     consumer_key: String,
     consumer_secret: String,
@@ -43,33 +81,22 @@ fn auth(
 }
 
 
-fn load_env(key: &str) -> String {
-    match std::env::var(key) {
-        Ok(val) => val,
-        Err(e) => panic!("{}", e),
-    }
-}
-
-
 #[tokio::main]
 async fn main() {
     let opt: Opt = Opt::from_args();
-    let consumer_key = load_env("CONSUMER_KEY");
-    let consumer_secret = load_env("CONSUMER_KEY_SECRET");
-    let access_key = load_env("API_KEY");
-    let access_secret = load_env("API_KEY_SECRET");
+    let credential = EnvironmentVariableCredential::new();
 
     if opt.verbose {
-        println!(
-            "consumer_key: {}\nconsumer_secret: {}\napi_key: {}\napi_secret: {}",
-            &consumer_key,
-            &consumer_secret,
-            &access_key,
-            &access_secret,
-        );
+        std::dbg!(&credential);
     }
 
-    let token = auth(consumer_key, consumer_secret, access_key, access_secret);
+    let token = auth(
+        credential.consumer_key,
+        credential.consumer_secret,
+        credential.access_key,
+        credential.access_secret,
+    );
+
     let user_id = egg_mode::user::show(opt.screen_name, &token).await.unwrap().response.id;
 
     let mut max_id: Option<u64> = None;
