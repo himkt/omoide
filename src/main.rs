@@ -54,10 +54,10 @@ struct EnvironmentVariableCredential {
 
 impl Credential for EnvironmentVariableCredential {
     fn new() -> EnvironmentVariableCredential {
-        let consumer_key = <EnvironmentVariableCredential as Credential>::load("CONSUMER_KEY");
-        let consumer_secret = <EnvironmentVariableCredential as Credential>::load("CONSUMER_KEY_SECRET");
-        let access_key = <EnvironmentVariableCredential as Credential>::load("API_KEY");
-        let access_secret = <EnvironmentVariableCredential as Credential>::load("API_KEY_SECRET");
+        let consumer_key = <EnvironmentVariableCredential as Credential>::load("API_KEY");
+        let consumer_secret = <EnvironmentVariableCredential as Credential>::load("API_KEY_SECRET");
+        let access_key = <EnvironmentVariableCredential as Credential>::load("ACCESS_TOKEN");
+        let access_secret = <EnvironmentVariableCredential as Credential>::load("ACCESS_TOKEN_SECRET");
 
         EnvironmentVariableCredential {
             consumer_key,
