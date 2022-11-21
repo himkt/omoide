@@ -1,6 +1,6 @@
 [package]
 name = "omoide"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Makoto Hiramatsu <himkt@cookpad.com>"]
 edition = "2018"
 
