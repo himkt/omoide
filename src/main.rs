@@ -28,6 +28,9 @@ struct Opt {
 
     #[structopt(long)]
     include_reply: bool,
+
+    #[structopt(long)]
+    include_self_liked: bool,
 }
 
 
@@ -101,10 +104,14 @@ async fn main() {
     for _ in 0..opt.num_iters {
         let ret = timeline.call(None, max_id).await.unwrap();
         for status in ret.response.iter() {
-            if opt.favorite_count < 0 {
+            // favorite_count == -1: viewing tweets.
+            if opt.favorite_count == -1 {
                 println!("{}", status.text);
             }
             else if status.favorite_count < opt.favorite_count {
+                if !opt.include_self_liked && status.favorited.unwrap() {
+                    continue;
+                }
                 if !opt.delete {
                     println!("[dru-run] {:?}", status.text);
                 }
